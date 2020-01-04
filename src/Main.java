@@ -1,4 +1,4 @@
-package PathFinding.AStar;
+package PathFinding.AStar.src;
 
 public class Main {
 
