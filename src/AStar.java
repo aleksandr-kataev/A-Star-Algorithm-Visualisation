@@ -14,6 +14,10 @@ public class AStar {
     public ArrayList<Cell> getPath() {
         return path;
     }
+    public void addItemPath(Cell cell){
+        this.path.add(cell);
+    }
+
 
     public void setPath(ArrayList<Cell> path) {
         this.path = path;
