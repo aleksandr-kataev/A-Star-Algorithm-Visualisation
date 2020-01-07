@@ -1,5 +1,6 @@
 package PathFinding.AStar.src;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class Cell {
@@ -14,15 +15,21 @@ public class Cell {
         this.y = j;
         this.neighbors = new ArrayList<Cell>();
         this.parent = null;
+        this.isObstacle = Math.random() < 0.3;
     }
 
 
-    public String neighborsToString(){
-        String string = "";
-        for (int i = 0; i < this.neighbors.size(); i++){
-            string += this.neighbors.get(i).getX() + ", " + this.neighbors.get(i).getY() + "\n";
+
+
+    public void render(Graphics g, Color color, int size){
+        g.setColor(Color.lightGray);
+        g.drawRect(this.x*size, this.y*size, size,size);
+        if (this.isObstacle){
+            g.setColor(Color.BLACK);
+        } else {
+            g.setColor(color);
         }
-        return string;
+        g.fillRect(this.x*size, this.y*size, size,size);
     }
 
 

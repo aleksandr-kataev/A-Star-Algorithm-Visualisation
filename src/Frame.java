@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 
+//optimise the getOpen set and get close set
+
+
 public class Frame extends JPanel implements ActionListener {
 
     private final int WIDTH = 800;
@@ -36,52 +39,21 @@ public class Frame extends JPanel implements ActionListener {
         this.repaint();
     }
 
+
     @Override
     public void actionPerformed(ActionEvent e) {
-
-        if (aStar.getOpenSet().size() > 0) {
-            int lowestCostIndex = 0;
-            for (int i = 0; i < aStar.getOpenSet().size(); i++){
-                if (aStar.getOpenSet().get(i).getF() < aStar.getOpenSet().get(lowestCostIndex).getF()){
-                    lowestCostIndex = i;
-                }
-            }
-            Cell current = aStar.getOpenSet().get(lowestCostIndex);
-
-            if (aStar.getOpenSet().get(lowestCostIndex) == aStar.getEnd()){
-                this.pathFound(current);
-                timer.stop();
-                //return;
-            }
-
-            aStar.removeCellOpenSet(current);
-            aStar.addCellCloseSet(current);
-
-            for (int i = 0; i < current.getNeighbors().size(); i++){
-                Cell neighbor = current.getNeighbors().get(i);
-                if (!aStar.getCloseSet().contains(neighbor)){
-                    int tempG = current.getG() + 1;
-                    if (aStar.getOpenSet().contains(neighbor)) {
-                        if(tempG < neighbor.getG()){
-                            neighbor.setG(tempG);
-                        }
-                    } else {
-                        neighbor.setG(tempG);
-                        aStar.addCellOpenSet(neighbor);
-                    }
-                    neighbor.setH(aStar.heuristic(neighbor, aStar.getEnd()));
-                    neighbor.setF(neighbor.getG() + neighbor.getH());
-                    neighbor.setParent(current);
-                }
-            }
-
-
-
-        } else {
-            this.pathNotFound();
+        if (aStar.getMode().equals("RUNNING")){
+            aStar.lookForPath();
+        } else if (aStar.getMode().equals("PATH_FOUND")) {
+            timer.stop();
+            System.out.println("Done");
+            JOptionPane.showMessageDialog(null, "Path Found");
+        } else if ((aStar.getMode().equals("PATH__NOT_FOUND"))){
+            timer.stop();
+            System.out.println("Not Found");
         }
+        this.revalidate();
         this.repaint();
-
     }
 
     public void paintComponent(Graphics g) {
@@ -92,30 +64,17 @@ public class Frame extends JPanel implements ActionListener {
         this.renderPath(g);
     }
 
-
-    //break down the paintComponent
-    //different methods to draw the components
-    //e.g.
-    //one for closed cells
-    //one for green cells
-    //one for path
-
-
-
-    public void pathNotFound(){
-        JOptionPane.showMessageDialog(null, "Path Not Found!");
-    }
-
-    public void pathFound(Cell current){
-        Cell temp = current;
-        aStar.addItemPath(temp);//
-        while (temp.getParent() != null){
-            aStar.addItemPath(temp.getParent());
-            temp = temp.getParent();
+    public void renderObstacles(Graphics g){
+        for(int i = 0; i<aStar.getGrid().length; i++){
+            for(int j = 0; j<aStar.getGrid().length; j++){
+                if (aStar.getGrid()[i][j].isObstacle()){
+                    g.setColor(Color.lightGray);
+                    g.drawRect(aStar.getGrid()[i][j].getX()*size, aStar.getGrid()[i][j].getY()*size, size,size);
+                    g.setColor(Color.BLACK);
+                    g.fillRect(aStar.getGrid()[i][j].getX()*size, aStar.getGrid()[i][j].getY()*size, size,size);
+                }
+            }
         }
-        System.out.println("Done");
-
-        //JOptionPane.showMessageDialog(null, "Path Found");
     }
 
     public void renderGrid(Graphics g){
@@ -125,41 +84,30 @@ public class Frame extends JPanel implements ActionListener {
                 g.drawRect(i, j, size, size);
             }
         }
+        this.renderObstacles(g);
     }
 
     public void renderCloseCells(Graphics g){
         for (int i = 0; i < aStar.getCloseSet().size(); i++) {
-            g.setColor(Color.RED);
             Cell current = aStar.getCloseSet().get(i);
-            g.fillRect(current.getX() * size, current.getY() * size,size,size);
-            g.setColor(Color.lightGray);
-            g.drawRect(current.getX() * size, current.getY() * size,size,size);
+            current.render(g,Color.RED,size);
         }
     }
 
     public void renderOpenCells(Graphics g){
-        g.setColor(Color.GREEN);
         for (int j = 0; j < aStar.getOpenSet().size(); j++) {
             Cell current = aStar.getOpenSet().get(j);
-            g.fillRect(current.getX() * size, current.getY() * size,size,size);
+            current.render(g,Color.GREEN,size);
         }
     }
 
     public void renderPath(Graphics g){
 
         for (int i = 0; i<aStar.getPath().size(); i++){
-            g.setColor(Color.YELLOW);
             Cell pathCell = aStar.getPath().get(i);
-            g.fillRect(pathCell.getX() * size, pathCell.getY() * size,size,size);
-            g.setColor(Color.lightGray);
-            g.drawRect(pathCell.getX() * size, pathCell.getY() * size,size,size);
+            pathCell.render(g,Color.YELLOW,size);
         }
     }
-
-
-
-
-
 
     public static void main(String[] args) {
         new Frame();
