@@ -4,7 +4,7 @@ import java.util.ArrayList;
 public class AStar {
 
     private final int DIMENSION = 800;
-    private int size = 10;
+    static int size = 10;
     private Cell[][] grid;
     private ArrayList<Cell> openSet, closeSet, path;
     private Cell start;
@@ -14,28 +14,34 @@ public class AStar {
 
     public AStar(){
         this.grid = new Cell[arrayLength][arrayLength];
-        this.mode = "RUNNING";
-        this.path = new ArrayList<Cell>();
-        this.openSet = new ArrayList<Cell>();
-        this.closeSet = new ArrayList<Cell>();
+        this.mode = "INITIALISED";
+        this.path = new ArrayList<>();
+        this.openSet = new ArrayList<>();
+        this.closeSet = new ArrayList<>();
+
+        //construct the grid based on the dimensions
         for (int i = 0; i < this.grid.length; i++){
             for(int j = 0; j < this.grid.length; j++){
                 grid[i][j] = new Cell(i,j);
             }
         }
 
+        //add possible points of expansions for every cell
         for (int i = 0; i < this.grid.length; i++){
             for(int j = 0; j < this.grid.length; j++){
                 this.constructNeighbors(this.grid[i][j]);
             }
         }
+    }
 
-        this.start = this.grid[0][0];
-        this.end = this.grid[arrayLength-1][arrayLength-1];
+    //setup the start and ends points and add the start point to the openSet
+    public void setup(Cell startCell, Cell endCell){
+        this.start = this.grid[startCell.getX()-1][startCell.getY()-1];
+        this.end = this.grid[endCell.getX()-1][endCell.getY()-1];
         this.start.setObstacle(false);
         this.end.setObstacle(false);
-
         this.openSet.add(start);
+        this.setMode("RUNNING");
     }
 
     public void setMode(String mode) {
@@ -45,13 +51,9 @@ public class AStar {
     public ArrayList<Cell> getPath() {
         return path;
     }
+
     public void addItemPath(Cell cell){
         this.path.add(cell);
-    }
-
-
-    public void setPath(ArrayList<Cell> path) {
-        this.path = path;
     }
 
     public Cell[][] getGrid() {
@@ -59,14 +61,24 @@ public class AStar {
     }
 
     public void addCellOpenSet(Cell cell){ this.openSet.add(cell); }
+
     public void addCellCloseSet(Cell cell){
         this.closeSet.add(cell);
     }
+
     public void removeCellOpenSet(Cell cell){
         this.openSet.remove(cell);
     }
-    public void removeCellCloseSet(Cell cell){
-        this.openSet.remove(cell);
+
+    public void emptyOpenSet(){
+        this.openSet.clear();
+    }
+    public void emptyPath(){
+        this.path.clear();
+    }
+
+    public void emptyCloseSet(){
+        this.closeSet.clear();
     }
 
     public String getMode() {
@@ -75,7 +87,10 @@ public class AStar {
 
     public double heuristic(Cell a, Cell b){
 
+        //Euclidean distance formula
         return Math.hypot((Math.abs(b.getY() - a.getY())), (Math.abs(b.getX() - a.getX())));
+
+        //different heuristic
         //return Math.abs(a.getX()-b.getX()) + Math.abs(a.getY()-b.getY());
     }
 
@@ -87,32 +102,35 @@ public class AStar {
             this.addItemPath(temp.getParent());
             temp = temp.getParent();
         }
-        //JOptionPane.showMessageDialog(null, "Path Found");
     }
 
-    public void lookForPath(){
+    public void run(){
         if (this.getOpenSet().size() > 0) {
+
+            //select the cell with the lowest F cost from opeSet
             int lowestCostIndex = 0;
             for (int i = 0; i < this.getOpenSet().size(); i++){
                 if (this.getOpenSet().get(i).getF() < this.getOpenSet().get(lowestCostIndex).getF()){
                     lowestCostIndex = i;
                 }
             }
-            Cell current = this.getOpenSet().get(lowestCostIndex);
 
+            Cell current = this.getOpenSet().get(lowestCostIndex);
             if (this.getOpenSet().get(lowestCostIndex) == this.getEnd()){
                 this.setMode("PATH_FOUND");
                 this.constructPath(current);
             }
 
+
+
             this.removeCellOpenSet(current);
             this.addCellCloseSet(current);
 
             for (int i = 0; i < current.getNeighbors().size(); i++){
+
                 Cell neighbor = current.getNeighbors().get(i);
                 if (!this.getCloseSet().contains(neighbor) && !neighbor.isObstacle()){
                     int tempG = current.getG() + 1;
-
                     boolean newPath = false;
                     if (this.getOpenSet().contains(neighbor)) {
                         if(tempG < neighbor.getG()){
@@ -143,12 +161,9 @@ public class AStar {
         this.mode = "PATH__NOT_FOUND";
     }
 
-
-
     public Cell getStart() {
         return start;
     }
-
 
     public Cell getEnd() {
         return end;
@@ -166,20 +181,16 @@ public class AStar {
         return closeSet;
     }
 
-    public void setOpenSet(ArrayList<Cell> openSet) {
-        this.openSet = openSet;
-    }
-
-    public void setCloseSet(ArrayList<Cell> closeSet) {
-        this.closeSet = closeSet;
-    }
 
 
 
+    //constructing possible points of expansion for a given cell
     public void constructNeighbors(Cell cell){
         int x = cell.getX();
         int y = cell.getY();
-        ArrayList<Cell> newList = new ArrayList<Cell>(cell.getNeighbors());
+        ArrayList<Cell> newList = new ArrayList<>(cell.getNeighbors());
+
+        //vertical and horizontal support
         if (x < arrayLength - 1){
             newList.add(this.grid[x+1][y]);
         }
@@ -192,6 +203,8 @@ public class AStar {
         if (y > 0){
             newList.add(this.grid[x][y-1]);
         }
+
+        //diagonal support
         if (x > 0 && y > 0){
             newList.add(this.grid[x-1][y-1]);
         }

@@ -13,12 +13,10 @@ public class Cell {
     public Cell(int i, int j){
         this.x = i;
         this.y = j;
-        this.neighbors = new ArrayList<Cell>();
+        this.neighbors = new ArrayList<>();
         this.parent = null;
         this.isObstacle = Math.random() < 0.3;
     }
-
-
 
 
     public void render(Graphics g, Color color, int size){
@@ -41,8 +39,6 @@ public class Cell {
         return x;
     }
 
-
-
     public void setParent(Cell parent) {
         this.parent = parent;
     }
@@ -58,7 +54,6 @@ public class Cell {
     public void setObstacle(boolean obstacle) {
         isObstacle = obstacle;
     }
-
 
     public Cell getParent() {
         return parent;
